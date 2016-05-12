@@ -94,29 +94,34 @@ public class GamePlayAppState extends AbstractAppState implements ScreenControll
         return playerStart.getLocalTranslation();
     }
     public Quaternion getPlayerStartRot(){
-        
+        return playerStart.getLocalRotation();
     }
-    player void setMapMaxWrenches(int mapMaxWrenches){
-        
+    public void setMapMaxWrenches(int mapMaxWrenches){
+        this.mapMaxWrenches = mapMaxWrenches;
     }
     public void increaseMapMaxWrenches(){
-        
+        mapMaxWrenches++;
     }
     public int getMapMaxWrenches(){
-        
         return mapMaxWrenches;
     }
     public void catchWrench(){
-        
+        currentWrenches++;
+        if(getWrenchCatchCount() == getMapMaxWrenches()){
+            currentWrenches = 0;
+            mapMaxWrenches = 0;
+            level++;
+            worldAppState.levelUp(level);
+        }
     }
     public void endGame(){
-        
+        stateManager.detach(worldAppState);
     }
     public int getWrenchCatchCount(){
-        
+        return currentWrenches;
     }
     public int getGameLevel(){
-        
+        return level;
     }
     public void bind(Nifty nifty, Screen screen){
         

@@ -145,53 +145,123 @@ public class StartScreenAppState extends AbstractAppState implements ScreenContr
         stateManager.attach(gamePlayAppState);
     }
     public void menuSettings(){
-        
+        nifty.gotoScreen("settings");
     }
     public void menuGameComplete(){
-        
+        nifty.gotoScreen("completion");
     }
     public void menuQuitGame(){
         app.stop();
     }
     private SettingsInputHandler sih;
     public void settingsKeyHandler(String eventId){
-        
+        Screen screen = nifty.getScreen("settings");
+        if(sih != null){
+            Button button = screen.findNiftyControl(sih.getEventId(), Button.class);
+            button.setText("");
+            inputManager.removeRawInputListener(sih);
+        }
+        Button button = screen.findNiftyControl(eventId, Button.class);
+        button.setText("<press a key>");
+        sih = new SettingsInputHandler(this,eventId);
+        inputManager.addRawInputListener(sih);
     }
     
     public void keyCallBack(KeyInputEvent evt, String eventId) throws Exception{
-
+        Screen screen = nifty.getScreen("settings");
+        Button button = screen.findNiftyControl(eventId, Button.class);
+        button.setText("" + KeyBindings.getKeyName(evt.getKeyCode()));
+        
+        mapNiftyBindings(eventId, keyBindings, evt.getKeyCode());
+        
+        inputManager.removeRawInputListener(sih);
+        sih = null;
+        
+        ((Button)screen.findNiftyControl("btnDone", Button.class)).setFocus();
     }
     
     public void mapNiftyBindings(String eventId, KeyBindings keyBindings int keyCode){
-    
+        if(eventId.equals("player_forward")){
+            keyBindings.CHARACTER_FORWARD = keyCode;
+        }
+        if(eventId.equals("player_backward")){
+            keyBindings.CHARACTER_BACKWARD = keyCode;
+        }
+        if(eventId.equals("player_left")){
+            keyBindings.CHARACTER_LEFT = keyCode;
+        }
+        if(eventId.equals("player_right")){
+            keyBindings.CHARACTER_RIGHT = keyCode;
+        }
+        if(eventId.equals("player_jump")){
+            keyBindings.CHARACTER_JUMP = keyCode;
+        }
+        if(eventId.equals("player_sprint")){
+            keyBindings.CHARACTER_SPRINT = keyCode;
+        }
 
 }
     public void setStartScreen(){
-        
+        nifty.gotoScreen("start");
     }
     public void setLoadingScreen(){
-        
+        System.out.println("Start loading");
+        nifty.gotoScreen("loading");
     }
     public void setLoadedScreen(){
-        
+        System.out.println("loaded");
+        nifty.gotoScreen("loaded");
     }
     public void setInGameGUI(){
+        System.out.println("ingame gui");
+        nifty.gotoScreen("ingameGui");
         
     }
     public void updateGameGUIWrenches(int currentWrenches, int maxWrenches){
+        Screen screen = nifty.getScreen("ingameGUI");
+        Element txtWrenchesBack = screen.findElementByName("txtWrenchesBack");
+        Element txtWrenchesFront = screen.findElementByName("txtWrenchesFront");
+        TextRenderer textRendererBack = txtWrenchesBack.getRenderer(TextRenderer.class);
+        TextRenderer textRendererFront = txtWrenchesFront.getRenderer(TextRenderer.class);
+        textRendererBack.setText("" + currentWrenches + " / " + maxWrenches);
+        textRendererFront.setText("" + currentWrenches + " / " + maxWrenches);
+        
         
     }
     public void updateGameGUILevel(int level){
-        
+        Screen screen = nifty.getScreen("ingameGUI");
+        Element txtLevelBack = screen.findElementByName("txtLevelBack");
+        Element txtLevelFront = screen.findElementByName("txtLevelFront");
+        TextRenderer textRendererBack = txtLevelBack.getRenderer(TextRenderer.class);
+        TextRenderer textRendererFront = txtLevelFront.getRenderer(TextRenderer.class);
+        textRendererBack.setText("Level: " + level);
+        textRendererFront.setText("Level: " + level);
     }
     public void guiToggleSound(){
+        Screen screenStart = nifty.getScreen("start");
+        Screen screenGame = nifty.getScreen("ingameGUI");
+        Element imageSoundIconStart = screenStart.findElementByName("soundIcon");
+        Element imageSoundIconGame = screenGame.findElementByName("soundIcon");
+        ImageRenderer imageRendererStart= imageSoundIconStart.getRenderer(ImageRenderer.class);
+        ImageRenderer imageRendererGame = imageSoundIconGame.getRenderer(ImageRenderer.class);
         
+        if(flagSoundEnabled){
+            imageRendererStart.setImage(nifty.createImage("Interface/Nifty/resources/soundOff.png", true));
+            imageRendererGame.setImage(nifty.createImage("Interface/Nifty/resources/soundOff.png", true));
+            flagSoundEnabled = false;
+            listener.setVolume(0);
+        }else{
+        imageRendererStart.setImage(nifty.createImage("Interface/Nifty/resources/soundOn.png", true));
+            imageRendererGame.setImage(nifty.createImage("Interface/Nifty/resources/soundOn.png", true));
+            flagSoundEnabled = true;
+            listener.setVolume(1);
+    }
     }
     public void updateWinningScreen(){
         updateWinningScreen = false;
     }
     public KeyBindings getKeyBindings(){
-        
+        return keyBindings;
     }
     public void changeKeyBindings(){
         
@@ -200,13 +270,18 @@ public class StartScreenAppState extends AbstractAppState implements ScreenContr
         
     }
     public void bind(Nifty nifty, Screen screen){
-        
+        System.out.println("bind( " + screen.getScreenId() + ")");
     }
     public void onStartScreen(){
-        
+        Screen s = nifty.getCurrentScreen();
+        if(s.getScreenId().equals("completion")) {
+            updateWinningScreen = true;
+        }
     }
     public void onEndScreen(){
-        
-    }
-    
+         Screen s = nifty.getCurrentScreen();
+        if(s.getScreenId().equals("completion")) {
+            updateWinningScreen = false;
+        }
+    } 
 }
